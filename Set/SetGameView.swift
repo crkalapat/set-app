@@ -18,7 +18,7 @@ struct SetGameView: View {
         ScrollView {
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 90), spacing: 15)], spacing: 15) {
                 ForEach(0..<81) { _ in
-                    Card()
+                    CardView()
                         .aspectRatio(2/3, contentMode: .fit)
                 }
             }
@@ -27,7 +27,7 @@ struct SetGameView: View {
     }
 }
 
-struct Card: View {
+struct CardView: View {
     var body: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 10)
