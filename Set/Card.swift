@@ -5,11 +5,13 @@
 //  Created by Charlie Kalapati on 10/27/25.
 //
 
-struct Card {
+struct Card: Equatable {
     let shape: CardShape
     let color: CardColor
     let symbolCount: Int
     let shading: CardShade
+    var isMatched = false
+    var isSelected = false
 }
 
 enum CardColor: CaseIterable {

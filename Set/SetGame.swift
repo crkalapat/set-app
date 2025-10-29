@@ -8,7 +8,8 @@
 import Foundation
 
 struct SetGame {
-    let cards: [Card]
+    private(set) var cards: [Card]
+    private(set) var selectedCardIndices: [Int] = []
     
     init() {
         var newCards: [Card] = []
@@ -35,9 +36,46 @@ struct SetGame {
         return false
     }
     
+    func isSet(_ indices: [Int]) -> Bool {
+        if indices.count == 3 {
+            if isSameOrDifferent(cards[indices[0]].color, cards[indices[1]].color, cards[indices[2]].color)
+                && isSameOrDifferent(cards[indices[0]].shape, cards[indices[1]].shape, cards[2].shape)
+                && isSameOrDifferent(cards[indices[0]].symbolCount, cards[indices[1]].symbolCount, cards[indices[2]].symbolCount) {
+                
+                return true
+            }
+        }
+        return false
+    }
+    
     func isSameOrDifferent<T: Equatable>(_ value1: T, _ value2: T, _ value3: T) -> Bool {
         return ((value1 == value2) && (value2 == value3)) ||
             (((value1 != value2) && (value2 != value3)) && (value1 != value3))
+    }
+    
+    mutating func choose(card: Card) {
+        if selectedCardIndices.count == 3 {
+            refreshCards()
+        }
+        if selectedCardIndices.count < 3 {
+            if let cardIndex = cards.firstIndex(of: card) {
+                selectedCardIndices.append(cardIndex)
+            }
+            if selectedCardIndices.count == 3 {
+                if isSet(selectedCardIndices) {
+                    for selectedIndex in selectedCardIndices {
+                        cards[selectedIndex].isMatched = true
+                    }
+                }
+            }
+        }
+    }
+    
+    mutating func refreshCards() {
+        let oldSelectedCardIndices = selectedCardIndices
+        for selectedIndex in selectedCardIndices {
+            cards.remove(at: selectedIndex)
+        }
     }
 
 }
