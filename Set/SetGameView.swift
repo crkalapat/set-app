@@ -1,5 +1,5 @@
 //
-//  ContentView.swift
+//  SetGameView.swift
 //  Set
 //
 //  Created by Charlie Kalapati on 10/17/25.
@@ -8,6 +8,9 @@
 import SwiftUI
 
 struct SetGameView: View {
+    
+    var viewModel: SetGameViewModel
+    let aspectRatio: CGFloat = 2/3
 
     var body: some View {
         Spacer()
@@ -15,43 +18,27 @@ struct SetGameView: View {
         Text("Set")
             .font(.largeTitle)
             .fontWeight(.bold)
-        ScrollView {
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: 90), spacing: 15)], spacing: 15) {
-                ForEach(0..<81) { _ in
-                    CardView()
-                        .aspectRatio(2/3, contentMode: .fit)
+        Spacer()
+        AspectVGrid(viewModel.cardsDisplayed, aspectRatio: aspectRatio) { card in
+            CardView(card)
+                .padding(5)
+                .onTapGesture {
+                    viewModel.select(card.id)
                 }
-            }
-            .padding(15)
         }
-    }
-}
-
-struct CardView: View {
-    var body: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 10)
-                .foregroundStyle(Color.white)
-                .shadow(radius: 5)
-            VStack {
-                Capsule(style: .continuous)
-                    .foregroundStyle(Color.blue)
-                    .frame(maxWidth: 60, maxHeight: 30)
-                    .padding(5)
-                Capsule(style: .continuous)
-                    .foregroundStyle(Color.blue)
-                    .frame(maxWidth: 60, maxHeight: 30)
-                    .padding(5)
-                Capsule(style: .continuous)
-                    .foregroundStyle(Color.blue)
-                    .frame(maxWidth: 60, maxHeight: 30)
-                    .padding(5)
-            }
-        }
+        .padding(15)
+        Spacer()
+        Button(action: {
+            viewModel.dealMoreCards()
+        }, label: {
+            Text("Deal 3 More Cards")
+        })
+        .disabled(viewModel.canDealCards)
         
     }
 }
 
+
 #Preview {
-    SetGameView()
+    SetGameView(viewModel: SetGameViewModel())
 }

@@ -7,12 +7,14 @@
 
 import SwiftUI
 
-@Observable
-class SetGameViewModel {
+@Observable class SetGameViewModel {
     var numCardsDisplayed = 12
     var game: SetGame
     var cardsDisplayed: [Card] {
-        Array(game.cards[0..<numCardsDisplayed])
+        game.cards
+    }
+    var canDealCards: Bool {
+        game.deck.isEmpty
     }
     
     init() {
@@ -23,11 +25,11 @@ class SetGameViewModel {
         game = SetGame()
     }
     
+    func select(_ cardId: Card.ID) {
+        game.select(cardID: cardId)
+    }
+    
     func dealMoreCards() {
-        if (game.isSet(game.selectedCardIndices)) {
-            
-        } else {
-            numCardsDisplayed += 3
-        }
+        game.dealMoreCards()
     }
 }

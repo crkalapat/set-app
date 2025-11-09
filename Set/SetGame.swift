@@ -8,7 +8,8 @@
 import Foundation
 
 struct SetGame {
-    private(set) var cards: [Card]
+    private(set) var deck: [Card]
+    private(set) var cards: [Card] = []
     private(set) var selectedCardIndices: [Int] = []
     
     init() {
@@ -23,25 +24,16 @@ struct SetGame {
             }
         }
         newCards.shuffle()
-        cards = newCards
-    }
-    
-    func isSet(_ card1: Card, _ card2: Card, _ card3: Card) -> Bool {
-        if isSameOrDifferent(card1.color, card2.color, card3.color)
-            && isSameOrDifferent(card1.shape, card2.shape, card3.shape)
-            && isSameOrDifferent(card1.symbolCount, card2.symbolCount, card3.symbolCount) {
-            
-            return true
+        deck = newCards
+        
+        for _ in 0..<12 {
+            cards.append(deck.removeFirst())
         }
-        return false
     }
     
     func isSet(_ indices: [Int]) -> Bool {
         if indices.count == 3 {
-            if isSameOrDifferent(cards[indices[0]].color, cards[indices[1]].color, cards[indices[2]].color)
-                && isSameOrDifferent(cards[indices[0]].shape, cards[indices[1]].shape, cards[2].shape)
-                && isSameOrDifferent(cards[indices[0]].symbolCount, cards[indices[1]].symbolCount, cards[indices[2]].symbolCount) {
-                
+            if (isSameOrDifferent(cards[indices[0]].color, cards[indices[1]].color, cards[indices[2]].color) && isSameOrDifferent(cards[indices[0]].shape, cards[indices[1]].shape, cards[indices[2]].shape)) && (isSameOrDifferent(cards[indices[0]].symbolCount, cards[indices[1]].symbolCount, cards[indices[2]].symbolCount) && isSameOrDifferent(cards[indices[0]].shading, cards[indices[1]].shading, cards[indices[2]].shading)) {
                 return true
             }
         }
@@ -53,29 +45,78 @@ struct SetGame {
             (((value1 != value2) && (value2 != value3)) && (value1 != value3))
     }
     
-    mutating func choose(card: Card) {
-        if selectedCardIndices.count == 3 {
-            refreshCards()
-        }
-        if selectedCardIndices.count < 3 {
-            if let cardIndex = cards.firstIndex(of: card) {
-                selectedCardIndices.append(cardIndex)
-            }
+    mutating func select(cardID id: Card.ID) {
+        if let cardIdx = cards.firstIndex(where: { $0.id == id }) {
             if selectedCardIndices.count == 3 {
-                if isSet(selectedCardIndices) {
-                    for selectedIndex in selectedCardIndices {
-                        cards[selectedIndex].isMatched = true
+                refreshCards()
+            }
+            guard let _ = cards[cardIdx].isMatched else {
+                if cards[cardIdx].isSelected && selectedCardIndices.count < 3 {
+                    cards[cardIdx].isSelected = false
+                    if selectedCardIndices.contains(cardIdx) {
+                        selectedCardIndices.remove(at: selectedCardIndices.firstIndex(of: cardIdx)!)
+                    }
+                } else if !cards[cardIdx].isSelected {
+                    if selectedCardIndices.count < 3 {
+                        cards[cardIdx].isSelected = true
+                        selectedCardIndices.append(cardIdx)
+                        if selectedCardIndices.count == 3 {
+                            if isSet(selectedCardIndices) {
+                                selectedCardIndices.forEach { index in
+                                    cards[index].isMatched = true
+                                }
+                            } else {
+                                selectedCardIndices.forEach { index in
+                                    cards[index].isMatched = false
+                                }
+                            }
+                        }
                     }
                 }
+                return
             }
         }
     }
     
-    mutating func refreshCards() {
-        let oldSelectedCardIndices = selectedCardIndices
-        for selectedIndex in selectedCardIndices {
-            cards.remove(at: selectedIndex)
+    mutating func dealMoreCards() {
+        if isSet(selectedCardIndices) {
+            selectedCardIndices.forEach { index in
+                replaceCard(at: index)
+            }
+            selectedCardIndices.removeAll()
+        } else {
+            for _ in 0..<3 {
+                dealCard()
+            }
         }
+    }
+    
+    mutating func replaceCard(at index: Int) {
+        if !deck.isEmpty {
+            cards[index] = deck.removeFirst()
+        } else {
+            cards.remove(at: index)
+        }
+    }
+    
+    mutating func dealCard() {
+        if !deck.isEmpty {
+            cards.append(deck.removeFirst())
+        }
+    }
+
+    mutating func refreshCards() {
+        if isSet(selectedCardIndices) {
+            selectedCardIndices.forEach { index in
+                replaceCard(at: index)
+            }
+        } else {
+            selectedCardIndices.forEach { index in
+                cards[index].isSelected = false
+                cards[index].isMatched = nil
+            }
+        }
+        selectedCardIndices.removeAll()
     }
 
 }

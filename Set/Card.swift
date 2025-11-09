@@ -5,13 +5,25 @@
 //  Created by Charlie Kalapati on 10/27/25.
 //
 
-struct Card: Equatable {
+import Foundation
+
+struct Card: Equatable, Hashable, Identifiable {
+    init(shape: CardShape, color: CardColor, symbolCount: Int, shading: CardShade, isMatched: Bool? = nil, isSelected: Bool = false) {
+        self.shape = shape
+        self.color = color
+        self.symbolCount = symbolCount
+        self.shading = shading
+        self.isMatched = isMatched
+        self.isSelected = isSelected
+    }
+    
     let shape: CardShape
     let color: CardColor
     let symbolCount: Int
     let shading: CardShade
-    var isMatched = false
+    var isMatched: Bool? = nil
     var isSelected = false
+    var id: UUID = UUID()
 }
 
 enum CardColor: CaseIterable {
@@ -23,7 +35,7 @@ enum CardColor: CaseIterable {
 enum CardShade: CaseIterable {
     case solid
     case tinted
-    case clear
+    case stroked
 }
 
 enum CardShape: CaseIterable {
