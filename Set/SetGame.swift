@@ -46,10 +46,12 @@ struct SetGame {
     }
     
     mutating func select(cardID id: Card.ID) {
-        if let cardIdx = cards.firstIndex(where: { $0.id == id }) {
+        if let _ = cards.firstIndex(where: { $0.id == id }) {
             if selectedCardIndices.count == 3 {
                 refreshCards()
             }
+        }
+        if let cardIdx = cards.firstIndex(where: { $0.id == id }) {
             guard let _ = cards[cardIdx].isMatched else {
                 if cards[cardIdx].isSelected && selectedCardIndices.count < 3 {
                     cards[cardIdx].isSelected = false
@@ -85,8 +87,14 @@ struct SetGame {
             }
             selectedCardIndices.removeAll()
         } else {
-            for _ in 0..<3 {
-                dealCard()
+            if deck.count >= 3 {
+                for _ in 0..<3 {
+                    dealCard()
+                }
+            } else {
+                for _ in 0..<deck.count {
+                    dealCard()
+                }
             }
         }
     }
@@ -95,7 +103,9 @@ struct SetGame {
         if !deck.isEmpty {
             cards[index] = deck.removeFirst()
         } else {
-            cards.remove(at: index)
+            if index < cards.count {
+                cards.remove(at: index)
+            }
         }
     }
     
@@ -107,7 +117,8 @@ struct SetGame {
 
     mutating func refreshCards() {
         if isSet(selectedCardIndices) {
-            selectedCardIndices.forEach { index in
+            selectedCardIndices.sort(by: >)
+            for index in selectedCardIndices {
                 replaceCard(at: index)
             }
         } else {

@@ -28,11 +28,21 @@ struct SetGameView: View {
         }
         .padding(15)
         Spacer()
-        Button(action: {
-            viewModel.dealMoreCards()
-        }, label: {
-            Text("Deal 3 More Cards")
-        })
+        HStack {
+            Spacer()
+            Button(action: {
+                viewModel.dealMoreCards()
+            }, label: {
+                Text("Deal 3 More Cards")
+            })
+            Spacer()
+            Button(action: {
+                viewModel.newGame()
+            }, label: {
+                Text("New Game")
+            })
+            Spacer()
+        }
         .disabled(viewModel.canDealCards)
         
     }
