@@ -35,6 +35,7 @@ struct SetGameView: View {
             }, label: {
                 Text("Deal 3 More Cards")
             })
+            .disabled(viewModel.canDealCards)
             Spacer()
             Button(action: {
                 viewModel.newGame()
@@ -43,7 +44,6 @@ struct SetGameView: View {
             })
             Spacer()
         }
-        .disabled(viewModel.canDealCards)
         
     }
 }
