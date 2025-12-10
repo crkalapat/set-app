@@ -10,6 +10,7 @@ import Foundation
 struct SetGame {
     private(set) var deck: [Card]
     private(set) var cards: [Card] = []
+    private(set) var discarded: [Card] = []
     private(set) var selectedCardIndices: [Int] = []
     
     init() {
@@ -27,8 +28,24 @@ struct SetGame {
         deck = newCards
         
         for _ in 0..<12 {
-            cards.append(deck.removeFirst())
+            var card = deck.removeFirst()
+            card.flip()
+            cards.append(card)
         }
+    }
+    
+    mutating func newGame() {
+        for _ in 0..<cards.count {
+            var oldCard = cards.removeFirst()
+            oldCard.flip()
+            deck.append(oldCard)
+        }
+        for _ in 0..<discarded.count {
+            var oldCard = discarded.removeFirst()
+            oldCard.flip()
+            deck.append(oldCard)
+        }
+        deck.shuffle()
     }
     
     func isSet(_ indices: [Int]) -> Bool {
@@ -80,41 +97,54 @@ struct SetGame {
         }
     }
     
-    mutating func dealMoreCards() {
-        if isSet(selectedCardIndices) {
-            selectedCardIndices.forEach { index in
-                replaceCard(at: index)
-            }
-            selectedCardIndices.removeAll()
-        } else {
-            if deck.count >= 3 {
-                for _ in 0..<3 {
-                    dealCard()
-                }
-            } else {
-                for _ in 0..<deck.count {
-                    dealCard()
-                }
-            }
-        }
-    }
-    
     mutating func replaceCard(at index: Int) {
+        var card = cards.remove(at: index)
+        card.isMatched = nil
+        card.isSelected = false
+        discarded.append(card)
         if !deck.isEmpty {
-            cards[index] = deck.removeFirst()
-        } else {
-            if index < cards.count {
-                cards.remove(at: index)
-            }
+            var newCard = deck.removeFirst()
+            newCard.flip()
+            cards.insert(newCard, at: index)
         }
     }
     
     mutating func dealCard() {
         if !deck.isEmpty {
-            cards.append(deck.removeFirst())
+            var keepSearching = true
+            if !selectedCardIndices.isEmpty {
+                selectedCardIndices.forEach { index in
+                    if let matched = cards[index].isMatched {
+                        if matched && keepSearching {
+                            replaceCard(at: index)
+                            keepSearching = false
+                        }
+                    }
+                }
+            }
+            if keepSearching {
+                var removedCard = deck.removeFirst()
+                removedCard.flip()
+                cards.append(removedCard)
+            }
         }
     }
-
+    
+    mutating func getNewCard() -> Card? {
+        if !deck.isEmpty {
+            var card = deck.removeFirst()
+            card.flip()
+            return card
+        }
+        return nil
+    }
+    
+    mutating func addToPlay(_ newCards: [Card]) {
+        newCards.forEach { card in
+            cards.append(card)
+        }
+    }
+    
     mutating func refreshCards() {
         if isSet(selectedCardIndices) {
             selectedCardIndices.sort(by: >)
@@ -129,5 +159,8 @@ struct SetGame {
         }
         selectedCardIndices.removeAll()
     }
-
+    
+    mutating func shuffle() {
+        cards.shuffle()
+    }
 }

@@ -10,10 +10,32 @@ import SwiftUI
 struct CardView: View, Identifiable {
     let card: Card
     var id: UUID
+    var showShadow = true
+    var cardColor: Color {
+        get {
+            if card.isFaceUp {
+                guard let _ = card.isMatched else {
+                    // yellow : white
+                    return card.isSelected ? Color(hex: 0xd9f3ff) : .white
+                }
+                if let matched = card.isMatched {
+                    if matched {
+                        return Color(hex: 0x4dfa87) // green
+                    } else {
+                        return Color(hex: 0xeb7579) // red
+                    }
+                }
+                return .pink
+            } else {
+                return .indigo
+            }
+        }
+    }
     
-    init(_ card: Card) {
+    init(_ card: Card, showShadow: Bool = true) {
         self.card = card
         self.id = UUID()
+        self.showShadow = showShadow
     }
         
     func getColor() -> Color {
@@ -27,6 +49,10 @@ struct CardView: View, Identifiable {
         }
     }
     
+    mutating func disableShadow() {
+        showShadow = false
+    }
+    
     func getShape() -> AnyShape {
         switch card.shape {
         case .capsule:
@@ -37,20 +63,6 @@ struct CardView: View, Identifiable {
             AnyShape(Diamond())
         }
     }
-    
-    func getShadowColor() -> Color {
-        guard let _ = card.isMatched else {
-            return card.isSelected ? .yellow : .gray
-        }
-        if let matched = card.isMatched {
-            if matched {
-                return .green
-            } else {
-                return .red
-            }
-        }
-        return .blue
-    }
         
     @ViewBuilder func styledShape<S: Shape>(_ content: S) -> some View {
         switch card.shading {
@@ -59,26 +71,46 @@ struct CardView: View, Identifiable {
                 .fill(getColor())
         case .stroked:
             content
-                .stroke(getColor(), lineWidth: 7)
-                .fill(Color.white)
+                .stroke(getColor(), lineWidth: 3)
+                .fill(Color.clear)
         case .tinted:
             content
                 .fill(getColor().opacity(0.5))
         }
     }
     
+    struct shadowBackground: ViewModifier {
+        var showShadow: Bool
+        
+        init(_ showShadow: Bool) {
+            self.showShadow = showShadow;
+        }
+        
+        @ViewBuilder
+        func body(content: Content) -> some View {
+            if (showShadow) {
+                content
+                    .shadow(color: .gray, radius: 5)
+            } else {
+                content
+            }
+        }
+    }
     
+    @ViewBuilder
     var body: some View {
         GeometryReader { geometry in
             ZStack {
                 RoundedRectangle(cornerRadius: 10)
-                    .foregroundStyle(Color.white)
-                    .shadow(color: getShadowColor(), radius: 5)
-                VStack {
-                    ForEach(0..<card.symbolCount, id: \.self) { _ in
-                        styledShape(getShape())
-                            .frame(maxWidth: geometry.size.width * 0.5, maxHeight: geometry.size.height * 0.15)
-                            .padding(5)
+                    .foregroundStyle(cardColor)
+                    .modifier(shadowBackground(showShadow))
+                if (card.isFaceUp) {
+                    VStack {
+                        ForEach(0..<card.symbolCount, id: \.self) { _ in
+                            styledShape(getShape())
+                                .frame(maxWidth: geometry.size.width * 0.5, maxHeight: geometry.size.height * 0.15)
+                                .padding(5)
+                        }
                     }
                 }
             }
@@ -86,3 +118,14 @@ struct CardView: View, Identifiable {
     }
 }
 
+extension Color {
+    init(hex: UInt, alpha: Double = 1) {
+        self.init(
+            .sRGB,
+            red: Double((hex >> 16) & 0xff) / 255,
+            green: Double((hex >> 08) & 0xff) / 255,
+            blue: Double((hex >> 00) & 0xff) / 255,
+            opacity: alpha
+        )
+    }
+}

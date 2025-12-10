@@ -8,13 +8,24 @@
 import Foundation
 
 struct Card: Equatable, Hashable, Identifiable {
-    init(shape: CardShape, color: CardColor, symbolCount: Int, shading: CardShade, isMatched: Bool? = nil, isSelected: Bool = false) {
+    init(shape: CardShape, color: CardColor, symbolCount: Int, shading: CardShade, isMatched: Bool? = nil, isFaceUp: Bool = false, isSelected: Bool = false) {
         self.shape = shape
         self.color = color
         self.symbolCount = symbolCount
         self.shading = shading
         self.isMatched = isMatched
         self.isSelected = isSelected
+        self.isFaceUp = isFaceUp
+    }
+    
+    init() {
+        self.shape = .capsule
+        self.color = .blue
+        self.symbolCount = 0
+        self.shading = .solid
+        self.isMatched = nil
+        self.isSelected = false
+        self.isFaceUp = true
     }
     
     let shape: CardShape
@@ -23,7 +34,12 @@ struct Card: Equatable, Hashable, Identifiable {
     let shading: CardShade
     var isMatched: Bool? = nil
     var isSelected = false
-    var id: UUID = UUID()
+    private(set) var isFaceUp = false
+    private(set) var id: UUID = UUID()
+    
+    mutating func flip() {
+        isFaceUp.toggle()
+    }
 }
 
 enum CardColor: CaseIterable {
